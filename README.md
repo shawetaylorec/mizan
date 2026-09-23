@@ -25,6 +25,17 @@ uploaded anywhere; the image stays on your machine.
 6. **Export PNG** writes the image, the grid and your marks out at the original
    resolution of the picture.
 
+## Working the other way round
+
+Measuring answers *what is this?* The **Exact ratios** panel answers *where does a
+quarter of an alif actually fall?* Choose Circle or Line, click a ratio — eighths
+through two alifs, or type any fraction you like — and you get a shape of exactly
+that dimension, which then follows the pointer until you click to place it. It is
+exact by construction, so its label always reads 100%. `Esc` cancels.
+
+Place one and drag it over a letter to test a hypothesis, rather than drawing by
+eye and hoping the number lands where you wanted.
+
 ## Reading the numbers
 
 The fraction shown is the closest simple fraction of an alif, searched over every
@@ -57,6 +68,8 @@ ratio, which is often the more honest number of the two.
 Clicking a colour recolours the selected shape as well as setting the colour for
 the next one. The palette is deliberately fluorescent so the marks stay legible
 over ink and toned paper. All strokes share one thickness, set in the Ink panel.
+The grid is black by default, since most scans are pale; it can be set to white or
+any of the fluorescents, and its weight is a slider.
 
 ## Notes
 

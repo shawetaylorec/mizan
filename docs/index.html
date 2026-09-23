@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mizan — proportion by the alif</title>
+<meta name="description" content="A single-file browser tool for measuring proportion in Arabic calligraphy. Set the height of the alif, then read every line and circle back as a fraction of it.">
+<meta property="og:title" content="Mizan — proportion by the alif">
+<meta property="og:description" content="Measure proportion in Arabic calligraphy against the height of the alif.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%23E0A93B'>ا</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ink:#0C0E12; --raise:#12151A; --raise2:#1A1E26;
+  --line:#242A34; --line2:#333A47;
+  --text:#E9E5DC; --dim:#A2A9B4; --faint:#717986;
+  --gold:#E0A93B; --gold-soft:rgba(224,169,59,.12);
+  --lime:#B6FF00; --ice:#00E5FF;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--text);
+  font:400 16px/1.65 "IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+h1,h2,h3,p,ul,figure{margin:0}
+a{color:var(--gold)}
+
+.wrap{max-width:840px;margin:0 auto;padding-inline:20px}
+
+/* the page is ruled like the tool's own grid */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(to right, rgba(224,169,59,.075) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(to bottom, rgba(224,169,59,.075) 0 1px, transparent 1px 46px);
+  mask-image:linear-gradient(to bottom, #000 0%, transparent 92%);
+  -webkit-mask-image:linear-gradient(to bottom, #000 0%, transparent 92%)}
+.hero .wrap{position:relative;padding-block:74px 60px}
+
+.mark{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
+.mark .ar{font-family:"Amiri",serif;font-size:54px;line-height:.9;color:var(--gold)}
+.mark .en{font-size:13px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;color:var(--dim)}
+
+h1{font-family:"Amiri",serif;font-weight:400;font-size:clamp(30px,5.2vw,46px);line-height:1.22;
+  letter-spacing:-.01em;text-wrap:balance;max-width:19ch}
+h1 em{font-style:normal;color:var(--gold)}
+.lede{margin-top:20px;font-size:17px;color:var(--dim);max-width:60ch}
+
+.cta{display:flex;flex-wrap:wrap;gap:11px;margin-top:32px}
+.btn{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-size:15px;
+  padding:11px 18px;border-radius:8px;border:1px solid var(--line2);color:var(--text);
+  background:var(--raise2);transition:background .14s,border-color .14s,transform .14s}
+.btn:hover{background:#242a35;border-color:#454e5e}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1B1305;font-weight:600}
+.btn.gold:hover{background:#EFBC52;border-color:#EFBC52}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.note{margin-top:16px;font-size:13.5px;color:var(--faint)}
+
+section{padding-block:56px;border-bottom:1px solid var(--line)}
+h2{font-family:"Amiri",serif;font-weight:400;font-size:28px;letter-spacing:-.01em}
+.kicker{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+  font-weight:600;margin-bottom:12px}
+section > .wrap > p{color:var(--dim);max-width:62ch;margin-top:14px}
+
+figure{margin-top:30px}
+figure img{width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--line2);
+  background:#0C0E12}
+figcaption{margin-top:11px;font-size:13px;color:var(--faint);max-width:62ch}
+
+/* the four steps really are a sequence, so they are numbered */
+.steps{list-style:none;padding:0;margin-top:28px;display:grid;gap:2px}
+.steps li{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;
+  padding:18px 0;border-top:1px solid var(--line)}
+.steps li:last-child{border-bottom:1px solid var(--line)}
+.steps .n{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--gold);
+  padding-top:4px;font-variant-numeric:tabular-nums}
+.steps h3{font-size:16.5px;font-weight:600}
+.steps p{color:var(--dim);font-size:15px;margin-top:5px;max-width:58ch}
+
+.readout{margin-top:28px;border:1px solid var(--line);border-radius:10px;background:var(--raise);
+  padding:22px;display:flex;flex-wrap:wrap;gap:26px;align-items:center}
+.readout .sample{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:26px;
+  color:var(--lime);white-space:nowrap}
+.readout .sample.low{color:var(--ice)}
+.readout p{margin:0;color:var(--dim);font-size:14.5px;flex:1 1 260px;min-width:0}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.9em}
+.formula{margin-top:22px;border-left:2px solid var(--gold);padding:10px 0 10px 18px;
+  color:var(--dim);font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13.5px;
+  overflow-x:auto}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:24px}
+.chips span{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13.5px;
+  border:1px solid var(--line2);border-radius:6px;padding:7px 12px;color:var(--text);
+  background:var(--raise2)}
+.chips span.more{color:var(--faint);border-style:dashed}
+
+.keys{margin-top:26px;width:100%;border-collapse:collapse;font-size:14.5px}
+.keys td{padding:9px 0;border-top:1px solid var(--line);vertical-align:top;color:var(--dim)}
+.keys tr:first-child td{border-top:none}
+.keys td:first-child{width:38%;padding-right:18px;color:var(--text);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin-top:26px}
+.cols h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.cols p{color:var(--dim);font-size:14.5px}
+@media (max-width:640px){.cols{grid-template-columns:1fr;gap:26px}
+  .steps li{grid-template-columns:1fr;gap:4px}
+  .steps .n{padding-top:0}}
+
+footer{padding-block:40px 56px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;
+  justify-content:space-between;font-size:13.5px;color:var(--faint)}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line2)}
+footer a:hover{color:var(--gold);border-color:var(--gold)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="mark">
+      <span class="ar">ميزان</span>
+      <span class="en">Mizan</span>
+    </div>
+    <h1>Every letter is measured against <em>the alif</em>.</h1>
+    <p class="lede">
+      Mizan puts that system on a photograph. Measure the alif once and it builds a
+      grid from that height, then reports every line and circle you draw as a fraction
+      of it — <span class="mono">1/4 (98%)</span> — so a proportion you can see becomes
+      a proportion you can state.
+    </p>
+    <div class="cta">
+      <a class="btn gold" href="app.html">Open Mizan</a>
+      <a class="btn" href="https://github.com/shawetaylorec/mizan">Source on GitHub</a>
+      <a class="btn" href="https://github.com/shawetaylorec/mizan/raw/main/index.html" download="mizan.html">Download the file</a>
+    </div>
+    <p class="note">
+      One HTML file, no install, no account. Your image never leaves your machine —
+      everything is measured in the browser.
+    </p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">The working view</p>
+    <h2>A dark room, a bright rule</h2>
+    <figure>
+      <img src="screenshot.png" alt="The Mizan interface: a specimen of Arabic calligraphy under a black grid, with a cyan circle measured at one alif and a lime line at one half." width="1400" height="900">
+      <figcaption>
+        The grid is black by default, because most scans are pale. The marks are
+        fluorescent for the same reason in reverse — lime, ice blue, magenta and the
+        rest stay legible over ink and toned paper.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">How it works</p>
+    <h2>Four steps, then arithmetic</h2>
+    <ol class="steps">
+      <li>
+        <span class="n">01</span>
+        <div>
+          <h3>Open a photograph of the script</h3>
+          <p>Drag it in, paste it, or pick a file. Shoot the page flat-on: a sheet
+            photographed at an angle will not give honest ratios, whatever the tool says.</p>
+        </div>
+      </li>
+      <li>
+        <span class="n">02</span>
+        <div>
+          <h3>Drag along one alif</h3>
+          <p>That single measurement is the unit. Hold <code>Shift</code> to lock it to
+            true vertical, or let it follow a slanted hand and tilt the grid to match.</p>
+        </div>
+      </li>
+      <li>
+        <span class="n">03</span>
+        <div>
+          <h3>Read the grid</h3>
+          <p>The alif is divided into equal parts — eight by default, with five and nine
+            offered because those are the usual nuqta counts for naskh and thuluth.
+            Heavier lines fall on whole alifs.</p>
+        </div>
+      </li>
+      <li>
+        <span class="n">04</span>
+        <div>
+          <h3>Draw, or place an exact ratio</h3>
+          <p>Lines and true circles, each labelled with its fraction of the alif. Export
+            the whole sheet — image, grid and marks — as a PNG at the original resolution.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Reading the numbers</p>
+    <h2>The fraction, and how far you are from it</h2>
+    <div class="readout">
+      <span class="sample">1/4 (98%)</span>
+      <p>Nearest to a quarter of an alif, and within 98% of exactly that. A near-perfect
+        quarter.</p>
+    </div>
+    <div class="readout">
+      <span class="sample low">1/2 (75%)</span>
+      <p>The nearest fraction available was a half — but the shape is a long way off it.
+        The percentage is the honest half of the reading.</p>
+    </div>
+    <p>
+      Mizan searches every fraction up to the denominator you allow — quarters through
+      sixteenths, eighths by default — and reports the closest, with its accuracy:
+    </p>
+    <div class="formula">accuracy = (1 &minus; |measured &minus; fraction| / fraction) &times; 100</div>
+    <p>
+      The panel also carries the raw pixel length and the exact decimal ratio, which is
+      often the more useful number of the two. Narrow the denominator limit when you only
+      care about the simple divisions; widen it when you are chasing a subtlety.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Exact ratios</p>
+    <h2>Or ask the other question</h2>
+    <p>
+      Measuring answers <em>what is this?</em> Sometimes you want the opposite: where does
+      a quarter of an alif actually fall? Click a ratio and you get a circle or line of
+      exactly that dimension, which follows the pointer until you set it down. Exact by
+      construction, so it always reads 100%.
+    </p>
+    <div class="chips">
+      <span>1/8</span><span>1/6</span><span>1/5</span><span>1/4</span><span>1/3</span>
+      <span>3/8</span><span>1/2</span><span>2/3</span><span>3/4</span><span>1</span>
+      <span>1½</span><span>2</span><span class="more">or any fraction you type</span>
+    </div>
+    <div class="cols">
+      <div>
+        <h3>Circles are always circles</h3>
+        <p>Drawn from the centre outwards, so there is no way to produce an ellipse by
+          accident. They report diameter by default; radius is a switch away.</p>
+      </div>
+      <div>
+        <h3>One thickness throughout</h3>
+        <p>Every stroke shares a single weight, set once, so nothing in the drawing
+          implies a distinction the measurement does not make.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">At the keyboard</p>
+    <h2>Shortcuts</h2>
+    <table class="keys">
+      <tr><td>V &nbsp;A &nbsp;L &nbsp;C</td><td>Select, Alif, Line, Circle</td></tr>
+      <tr><td>Shift</td><td>while drawing, snaps a line to 15° steps and an alif to vertical</td></tr>
+      <tr><td>Space, or drag empty space</td><td>pan the sheet</td></tr>
+      <tr><td>Scroll &nbsp;·&nbsp; 0</td><td>zoom · fit the image to the view</td></tr>
+      <tr><td>Backspace</td><td>delete the selection</td></tr>
+      <tr><td>Ctrl + Z</td><td>undo</td></tr>
+      <tr><td>G &nbsp;·&nbsp; Esc</td><td>show or hide the grid · cancel a pending ratio</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Mizan · <span class="mono">ميزان</span>, the balance — MIT licensed.</span>
+    <span>
+      <a href="app.html">Open the tool</a> &nbsp;·&nbsp;
+      <a href="https://github.com/shawetaylorec/mizan">Repository</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
