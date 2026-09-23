@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- ARTIFACT:BEGIN -->
+<title>Mizan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ink:#0C0E12; --stage:#16191F; --panel:#12151A; --panel2:#1A1E26; --panel3:#222733;
+  --line:#272D38; --line2:#343B49;
+  --text:#E9E5DC; --dim:#98A0AC; --faint:#6A7280;
+  --gold:#E0A93B; --gold-soft:rgba(224,169,59,.13);
+  --danger:#FF6B6B;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--text);
+  font:400 14px/1.45 "IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit}
+h1,h2,p{margin:0}
+
+.app{height:100%;display:flex;flex-direction:column;min-height:0}
+
+/* ---- top bar ---- */
+.topbar{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:9px 16px;padding-top:calc(9px + env(safe-area-inset-top,0px));
+  background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+.brand .ar{font-family:"Amiri",serif;font-size:27px;line-height:1;color:var(--gold)}
+.brand .en{font-size:12px;font-weight:600;letter-spacing:.17em;text-transform:uppercase}
+.brand .tag{font-size:12px;color:var(--faint);white-space:nowrap}
+.filename{font-size:12px;color:var(--dim);font-family:"IBM Plex Mono",ui-monospace,monospace;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32ch}
+.spacer{flex:1 1 auto}
+.topacts{display:flex;gap:8px;align-items:center}
+
+/* ---- buttons ---- */
+.btn{border:1px solid var(--line2);background:var(--panel2);color:var(--text);font-size:13px;
+  padding:7px 11px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:background .12s,border-color .12s,color .12s}
+.btn:hover{background:var(--panel3);border-color:#414a5b}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#1B1305;font-weight:600}
+.btn.primary:hover{background:#EFBC52;border-color:#EFBC52}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn svg{flex:none}
+
+/* ---- layout ---- */
+.main{flex:1;display:flex;min-height:0}
+.panel{flex:none;width:300px;background:var(--panel);border-right:1px solid var(--line);
+  overflow-y:auto;overscroll-behavior:contain;
+  padding:15px 14px calc(18px + env(safe-area-inset-bottom,0px));
+  display:flex;flex-direction:column;gap:19px}
+.stage{flex:1;min-width:0;position:relative;background:var(--stage)}
+#cv{display:block;width:100%;height:100%;touch-action:none}
+
+/* ---- panel sections ---- */
+.sec{display:flex;flex-direction:column;gap:9px}
+.sec > h2{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.hint{font-size:11.5px;line-height:1.55;color:var(--faint)}
+.hint b{color:var(--dim);font-weight:500}
+
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tool{border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:7px;
+  padding:8px 9px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:12.5px;text-align:left}
+.tool:hover{background:var(--panel3);color:var(--text)}
+.tool[aria-pressed="true"]{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.tool kbd{margin-left:auto;font:500 9.5px/1 "IBM Plex Mono",ui-monospace,monospace;color:var(--faint);
+  border:1px solid var(--line2);border-radius:3px;padding:2px 3px}
+
+.card{border:1px solid var(--line);border-radius:9px;background:var(--panel2);padding:10px 11px;
+  display:flex;flex-direction:column;gap:4px}
+.card.live{border-color:rgba(224,169,59,.42);background:linear-gradient(180deg,var(--gold-soft),transparent)}
+.card .k{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.card .v{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:19px;font-variant-numeric:tabular-nums}
+.card .v small{font-size:12px;color:var(--dim)}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;min-height:26px}
+.row > span:first-child{color:var(--dim)}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;
+  font-variant-numeric:tabular-nums;color:var(--text);min-width:34px;text-align:right}
+input[type=range]{width:118px;accent-color:var(--gold);background:transparent}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--line2);border-radius:6px;
+  padding:4px 7px;font-size:12.5px;cursor:pointer}
+.switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--dim)}
+.switch input{accent-color:var(--gold);width:15px;height:15px;cursor:pointer}
+
+.swatches{display:flex;flex-wrap:wrap;gap:7px}
+.sw{width:27px;height:27px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.45);transition:transform .1s}
+.sw:hover{transform:scale(1.1)}
+.sw[aria-pressed="true"]{border-color:var(--text);transform:scale(1.1)}
+.sw.small{width:19px;height:19px}
+
+.mlist{display:flex;flex-direction:column;gap:5px}
+.mrow{display:grid;grid-template-columns:11px 1fr auto;gap:9px;align-items:center;
+  border:1px solid var(--line);border-radius:7px;background:var(--panel2);padding:7px 9px;cursor:pointer}
+.mrow:hover{border-color:var(--line2)}
+.mrow.sel{border-color:var(--gold);background:var(--gold-soft)}
+.dot{width:11px;height:11px;border-radius:50%}
+.mrow .frac{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;font-weight:600;
+  font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.mrow .frac em{font-style:normal;font-size:11px;font-weight:400;color:var(--dim)}
+.mrow .meta{font-size:11px;color:var(--faint);font-family:"IBM Plex Mono",ui-monospace,monospace;margin-top:2px}
+.del{border:none;background:transparent;color:var(--faint);cursor:pointer;font-size:15px;
+  line-height:1;padding:2px 4px;border-radius:4px}
+.del:hover{color:var(--danger);background:rgba(255,107,107,.1)}
+.empty{font-size:12px;color:var(--faint);font-style:italic}
+
+/* ---- overlays ---- */
+.drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;padding:24px}
+.drop .box{border:1.5px dashed var(--line2);border-radius:14px;padding:26px 30px;text-align:center;
+  background:rgba(12,14,18,.72);max-width:340px}
+.drop .box .ar{font-family:"Amiri",serif;font-size:46px;color:var(--gold);line-height:1;
+  display:block;margin-bottom:8px}
+.drop .box p{font-size:13px;color:var(--dim);line-height:1.6}
+.stage.over .drop .box{border-color:var(--gold);background:rgba(224,169,59,.08)}
+
+.zoombar{position:absolute;left:12px;bottom:12px;display:flex;gap:5px;align-items:center;
+  background:rgba(12,14,18,.82);border:1px solid var(--line);border-radius:8px;padding:5px 7px}
+.zoombar button{border:none;background:transparent;color:var(--dim);cursor:pointer;font-size:14px;
+  width:24px;height:24px;border-radius:5px;line-height:1}
+.zoombar button:hover{background:var(--panel3);color:var(--text)}
+.zoombar .z{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--dim);
+  min-width:46px;text-align:center;font-variant-numeric:tabular-nums}
+
+.modal{position:fixed;inset:0;background:rgba(6,8,11,.88);display:flex;align-items:center;
+  justify-content:center;padding:24px;z-index:50}
+.modal .sheet{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:16px;
+  max-width:min(900px,92vw);max-height:88vh;display:flex;flex-direction:column;gap:12px}
+.modal img{max-width:100%;max-height:58vh;border-radius:6px;border:1px solid var(--line);
+  object-fit:contain;background:#000}
+.modal .foot{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.modal .foot p{font-size:11.5px;color:var(--faint);flex:1 1 200px;line-height:1.5}
+a.btn{text-decoration:none}
+
+@media (max-width:880px){
+  .main{flex-direction:column}
+  .panel{width:auto;order:2;border-right:none;border-top:1px solid var(--line);max-height:44vh}
+  .stage{order:1;min-height:46vh}
+  .brand .tag{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="ar">ميزان</span>
+      <span class="en">Mizan</span>
+      <span class="tag">— proportion by the alif</span>
+    </div>
+    <span class="filename" id="fname">Sample specimen</span>
+    <span class="spacer"></span>
+    <div class="topacts">
+      <button class="btn" id="btnOpen">Open image</button>
+      <button class="btn primary" id="btnExport">Export PNG</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="panel">
+
+      <div class="sec">
+        <h2>Tools</h2>
+        <div class="tools">
+          <button class="tool" data-tool="select" aria-pressed="true">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M3 1.5l9.5 6.2-4 .7 2.3 4.4-1.7.9-2.3-4.4L3 12z"/></svg>
+            Select<kbd>V</kbd></button>
+          <button class="tool" data-tool="alif" aria-pressed="false">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2.5v11M5 2.5h6M5 13.5h6"/></svg>
+            Alif<kbd>A</kbd></button>
+          <button class="tool" data-tool="line" aria-pressed="false">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 13.5L13.5 2.5"/></svg>
+            Line<kbd>L</kbd></button>
+          <button class="tool" data-tool="circle" aria-pressed="false">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.6"/></svg>
+            Circle<kbd>C</kbd></button>
+        </div>
+        <p class="hint" id="toolHint"></p>
+      </div>
+
+      <div class="sec">
+        <h2>Reference</h2>
+        <div class="card live" id="alifCard">
+          <span class="k">Alif height</span>
+          <span class="v" id="alifVal">—</span>
+          <span class="hint" id="alifSub">Pick the Alif tool and drag along the alif.</span>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Grid</h2>
+        <div class="row">
+          <label class="switch"><input type="checkbox" id="gridOn" checked> Show grid</label>
+          <kbd style="font:500 9.5px/1 'IBM Plex Mono',monospace;color:var(--faint);border:1px solid var(--line2);border-radius:3px;padding:3px 4px">G</kbd>
+        </div>
+        <div class="row">
+          <span>Divisions per alif</span>
+          <select id="gridDiv">
+            <option value="4">4</option><option value="5">5 · naskh nuqta</option>
+            <option value="6">6</option><option value="7">7</option>
+            <option value="8" selected>8</option><option value="9">9 · thuluth nuqta</option>
+            <option value="10">10</option><option value="12">12</option>
+          </select>
+        </div>
+        <div class="row"><span>Opacity</span><input type="range" id="gridOp" min="4" max="70" value="22"><span class="num" id="gridOpV">22%</span></div>
+        <div class="row"><label class="switch"><input type="checkbox" id="gridAlign"> Tilt grid to alif</label></div>
+        <div class="row"><span>Colour</span><div class="swatches" id="gridSw"></div></div>
+      </div>
+
+      <div class="sec">
+        <h2>Ink</h2>
+        <div class="swatches" id="inkSw"></div>
+        <div class="row"><span>Thickness</span><input type="range" id="thick" min="1" max="40" value="3"><span class="num" id="thickV">3px</span></div>
+        <div class="row"><span>Circles read as</span>
+          <select id="circMode"><option value="diameter" selected>Diameter</option><option value="radius">Radius</option></select>
+        </div>
+        <div class="row"><span>Finest fraction</span>
+          <select id="maxDen"><option value="4">quarters</option><option value="6">sixths</option>
+            <option value="8" selected>eighths</option><option value="12">twelfths</option><option value="16">sixteenths</option></select>
+        </div>
+        <div class="row"><label class="switch"><input type="checkbox" id="showLabels" checked> Labels on canvas</label></div>
+      </div>
+
+      <div class="sec">
+        <h2>Measurements</h2>
+        <div class="mlist" id="mlist"></div>
+        <div class="row" style="margin-top:2px">
+          <button class="btn" id="btnUndo" style="font-size:12px;padding:5px 9px">Undo</button>
+          <button class="btn" id="btnClear" style="font-size:12px;padding:5px 9px">Clear shapes</button>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Shortcuts</h2>
+        <p class="hint">
+          <b>Shift</b> while drawing — snap a line to 15° steps, an alif to true vertical.<br>
+          <b>Scroll</b> to zoom, <b>drag empty space</b> or hold <b>Space</b> to pan, <b>0</b> to fit.<br>
+          <b>Backspace</b> deletes the selection, <b>Ctrl+Z</b> undoes, <b>Ctrl+V</b> pastes an image.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div class="drop" id="drop" hidden>
+        <div class="box">
+          <span class="ar">ا</span>
+          <p>Drop an image of a script here, or use <b>Open image</b>.</p>
+        </div>
+      </div>
+      <div class="zoombar">
+        <button id="zOut" title="Zoom out">−</button>
+        <span class="z" id="zVal">100%</span>
+        <button id="zIn" title="Zoom in">+</button>
+        <button id="zFit" title="Fit to view" style="width:auto;padding:0 7px;font-size:11px">FIT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileIn" accept="image/*" hidden>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------
+   Mizan — proportion measuring for Arabic calligraphy.
+   Everything is measured against one reference: the height of the
+   alif, which in the classical system governs every other letter.
+----------------------------------------------------------------*/
+
+var PALETTE = [
+  ["Laser lime",   "#B6FF00"],
+  ["Acid green",   "#00FF85"],
+  ["Ice blue",     "#00E5FF"],
+  ["UV violet",    "#A855FF"],
+  ["Magenta",      "#FF00D4"],
+  ["Hot pink",     "#FF3B7F"],
+  ["Neon orange",  "#FF6A00"],
+  ["Electric yellow","#FFE500"]
+];
+
+var S = {
+  img: null, name: "Sample specimen", isSample: true,
+  view: {scale: 1, tx: 0, ty: 0},
+  alif: null,                 // {x1,y1,x2,y2}
+  shapes: [],                 // {id,type,color,...}
+  sel: null,
+  tool: "select",
+  color: PALETTE[0][1],
+  alifColor: "#FFFFFF",
+  gridColor: PALETTE[2][1],
+  grid: {on: true, div: 8, op: 0.22, align: false},
+  thick: 3,
+  circMode: "diameter",
+  maxDen: 8,
+  labels: true
+};
+
+var undoStack = [], nextId = 1, spaceDown = false;
+
+var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+var stage = document.getElementById("stage");
+var CW = 1, CH = 1, dpr = 1;
+
+/* ---------------- geometry helpers ---------------- */
+function dist(ax, ay, bx, by){ return Math.hypot(bx - ax, by - ay); }
+function alifLen(){ return S.alif ? dist(S.alif.x1, S.alif.y1, S.alif.x2, S.alif.y2) : 0; }
+function lineLen(s){ return dist(s.x1, s.y1, s.x2, s.y2); }
+
+function distToSeg(px, py, x1, y1, x2, y2){
+  var dx = x2 - x1, dy = y2 - y1, L2 = dx*dx + dy*dy;
+  if (L2 === 0) return dist(px, py, x1, y1);
+  var t = Math.max(0, Math.min(1, ((px-x1)*dx + (py-y1)*dy) / L2));
+  return dist(px, py, x1 + t*dx, y1 + t*dy);
+}
+
+function gcd(a, b){ while (b) { var t = b; b = a % b; a = t; } return a; }
+
+/* Nearest simple fraction, with a readable accuracy score. */
+function bestFraction(v, maxDen){
+  if (!isFinite(v) || v <= 0) return null;
+  var best = null;
+  for (var q = 1; q <= maxDen; q++){
+    var p = Math.round(v * q);
+    if (p < 1) p = 1;
+    var f = p / q, err = Math.abs(v - f);
+    if (!best || err < best.err - 1e-12) best = {p: p, q: q, f: f, err: err};
+  }
+  var g = gcd(best.p, best.q);
+  best.p /= g; best.q /= g;
+  best.acc = Math.max(0, 100 * (1 - best.err / best.f));
+  return best;
+}
+
+function fracLabel(b){
+  if (b.q === 1) return String(b.p);
+  if (b.p < b.q) return b.p + "/" + b.q;
+  var w = Math.floor(b.p / b.q), r = b.p - w * b.q;
+  return w + " " + r + "/" + b.q;
+}
+
+function measureOf(s){
+  if (s.type === "line") return lineLen(s);
+  return S.circMode === "diameter" ? s.r * 2 : s.r;
+}
+function ratioOf(s){ var u = alifLen(); return u > 0 ? measureOf(s) / u : null; }
+
+function readout(s){
+  var r = ratioOf(s);
+  if (r === null) return {frac: "—", acc: "", ratio: null};
+  var b = bestFraction(r, S.maxDen);
+  return {frac: fracLabel(b) + " alif", acc: Math.round(b.acc) + "%", ratio: r};
+}
+function canvasLabel(s){
+  var r = ratioOf(s);
+  if (r === null) return "set alif";
+  var b = bestFraction(r, S.maxDen);
+  return fracLabel(b) + "  (" + Math.round(b.acc) + "%)";
+}
+
+/* ---------------- view ---------------- */
+function toImg(ev){
+  var rect = cv.getBoundingClientRect();
+  return {
+    x: (ev.clientX - rect.left - S.view.tx) / S.view.scale,
+    y: (ev.clientY - rect.top  - S.view.ty) / S.view.scale
+  };
+}
+function fitView(){
+  if (!S.img) return;
+  var s = Math.min(CW / S.img.naturalWidth, CH / S.img.naturalHeight) * 0.92;
+  S.view.scale = s;
+  S.view.tx = (CW - S.img.naturalWidth * s) / 2;
+  S.view.ty = (CH - S.img.naturalHeight * s) / 2;
+  draw();
+}
+function zoomAt(cx, cy, factor){
+  var s0 = S.view.scale;
+  var s1 = Math.max(0.02, Math.min(40, s0 * factor));
+  if (s1 === s0) return;
+  S.view.tx = cx - (cx - S.view.tx) * (s1 / s0);
+  S.view.ty = cy - (cy - S.view.ty) * (s1 / s0);
+  S.view.scale = s1;
+  draw();
+}
+
+function resize(){
+  var r = stage.getBoundingClientRect();
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  CW = Math.max(1, Math.round(r.width));
+  CH = Math.max(1, Math.round(r.height));
+  cv.width = Math.round(CW * dpr);
+  cv.height = Math.round(CH * dpr);
+  draw();
+}
+
+/* ---------------- drawing ---------------- */
+function roundRect(c, x, y, w, h, r){
+  if (c.roundRect) { c.beginPath(); c.roundRect(x, y, w, h, r); return; }
+  c.beginPath();
+  c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+
+function drawGrid(c, env){
+  if (!S.grid.on || alifLen() <= 0) return;
+  var step = alifLen() / S.grid.div;
+  if (!env.forExport && step * S.view.scale < 3.5) return;
+
+  var phi = 0;
+  if (S.grid.align){
+    var dx = S.alif.x2 - S.alif.x1, dy = S.alif.y2 - S.alif.y1;
+    if (dy < 0) { dx = -dx; dy = -dy; }
+    phi = Math.atan2(-dx, dy);
+  }
+  var ox = S.alif.x1, oy = S.alif.y1;
+  var cs = Math.cos(phi), sn = Math.sin(phi);
+
+  // visible region, expressed in the grid's own frame
+  var pts = [[env.x0, env.y0], [env.x1, env.y0], [env.x0, env.y1], [env.x1, env.y1]];
+  var lo = {x: Infinity, y: Infinity}, hi = {x: -Infinity, y: -Infinity};
+  for (var i = 0; i < 4; i++){
+    var X = pts[i][0] - ox, Y = pts[i][1] - oy;
+    var lx = X * cs + Y * sn, ly = -X * sn + Y * cs;
+    lo.x = Math.min(lo.x, lx); hi.x = Math.max(hi.x, lx);
+    lo.y = Math.min(lo.y, ly); hi.y = Math.max(hi.y, ly);
+  }
+  var i0 = Math.floor(lo.x / step), i1 = Math.ceil(hi.x / step);
+  var j0 = Math.floor(lo.y / step), j1 = Math.ceil(hi.y / step);
+  if ((i1 - i0) + (j1 - j0) > 4000) return;
+
+  c.save();
+  c.translate(ox, oy); c.rotate(phi);
+  c.strokeStyle = S.gridColor;
+  var hair = env.hair;
+  var k;
+  for (k = i0; k <= i1; k++){
+    var major = (k % S.grid.div === 0);
+    c.globalAlpha = major ? Math.min(0.92, S.grid.op * 2.3) : S.grid.op;
+    c.lineWidth = major ? hair * 1.7 : hair;
+    c.beginPath(); c.moveTo(k * step, lo.y); c.lineTo(k * step, hi.y); c.stroke();
+  }
+  for (k = j0; k <= j1; k++){
+    var major2 = (k % S.grid.div === 0);
+    c.globalAlpha = major2 ? Math.min(0.92, S.grid.op * 2.3) : S.grid.op;
+    c.lineWidth = major2 ? hair * 1.7 : hair;
+    c.beginPath(); c.moveTo(lo.x, k * step); c.lineTo(hi.x, k * step); c.stroke();
+  }
+  c.restore();
+  c.globalAlpha = 1;
+}
+
+function drawLabel(c, x, y, text, color, px){
+  c.save();
+  c.font = '600 ' + px + 'px "IBM Plex Mono", ui-monospace, monospace';
+  c.textAlign = "center"; c.textBaseline = "middle";
+  var w = c.measureText(text).width, padX = px * 0.5, padY = px * 0.34;
+  var h = px * 1.25;
+  c.fillStyle = "rgba(8,10,13,.82)";
+  roundRect(c, x - w/2 - padX, y - h/2 - padY, w + padX*2, h + padY*2, px * 0.4);
+  c.fill();
+  c.fillStyle = color;
+  c.fillText(text, x, y);
+  c.restore();
+}
+
+function drawAlif(c, env){
+  if (!S.alif) return;
+  var a = S.alif, lw = env.lw;
+  var dx = a.x2 - a.x1, dy = a.y2 - a.y1, L = Math.hypot(dx, dy) || 1;
+  var nx = -dy / L, ny = dx / L;              // unit normal
+  var tick = Math.max(env.handle * 2.6, lw * 3);
+  c.save();
+  c.lineCap = "round";
+  c.strokeStyle = S.alifColor;
+  c.lineWidth = lw;
+  c.beginPath();
+  c.moveTo(a.x1, a.y1); c.lineTo(a.x2, a.y2);
+  c.moveTo(a.x1 - nx*tick, a.y1 - ny*tick); c.lineTo(a.x1 + nx*tick, a.y1 + ny*tick);
+  c.moveTo(a.x2 - nx*tick, a.y2 - ny*tick); c.lineTo(a.x2 + nx*tick, a.y2 + ny*tick);
+  c.stroke();
+  if (S.labels){
+    drawLabel(c, (a.x1 + a.x2)/2 + nx*tick*1.9, (a.y1 + a.y2)/2 + ny*tick*1.9,
+              "1 alif", S.alifColor, env.label);
+  }
+  if (!env.forExport && S.sel === "alif"){
+    handle(c, a.x1, a.y1, env); handle(c, a.x2, a.y2, env);
+  }
+  c.restore();
+}
+
+function handle(c, x, y, env){
+  var r = env.handle;
+  c.save();
+  c.beginPath(); c.arc(x, y, r, 0, Math.PI*2);
+  c.fillStyle = "#FFFFFF"; c.fill();
+  c.lineWidth = r * 0.42; c.strokeStyle = "#0C0E12"; c.stroke();
+  c.restore();
+}
+
+function drawShape(c, s, env){
+  c.save();
+  c.strokeStyle = s.color;
+  c.lineWidth = env.lw;
+  c.lineCap = "round";
+  c.beginPath();
+  if (s.type === "line"){
+    c.moveTo(s.x1, s.y1); c.lineTo(s.x2, s.y2);
+  } else {
+    c.arc(s.cx, s.cy, Math.max(s.r, 0.01), 0, Math.PI*2);
+  }
+  c.stroke();
+
+  if (S.labels){
+    var t = canvasLabel(s);
+    if (s.type === "line"){
+      var dx = s.x2 - s.x1, dy = s.y2 - s.y1, L = Math.hypot(dx, dy) || 1;
+      var off = env.label * 1.25;
+      drawLabel(c, (s.x1+s.x2)/2 - dy/L*off, (s.y1+s.y2)/2 + dx/L*off, t, s.color, env.label);
+    } else {
+      drawLabel(c, s.cx, s.cy - s.r - env.label * 1.1, t, s.color, env.label);
+    }
+  }
+
+  if (!env.forExport && S.sel === s.id){
+    if (s.type === "line"){ handle(c, s.x1, s.y1, env); handle(c, s.x2, s.y2, env); }
+    else {
+      handle(c, s.cx, s.cy, env);
+      handle(c, s.cx + s.r, s.cy, env); handle(c, s.cx - s.r, s.cy, env);
+      handle(c, s.cx, s.cy + s.r, env); handle(c, s.cx, s.cy - s.r, env);
+    }
+  }
+  c.restore();
+}
+
+function overlay(c, env){
+  drawGrid(c, env);
+  for (var i = 0; i < S.shapes.length; i++) drawShape(c, S.shapes[i], env);
+  drawAlif(c, env);
+}
+
+function draw(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#16191F";
+  ctx.fillRect(0, 0, CW, CH);
+  if (!S.img) return;
+
+  var sc = S.view.scale;
+  ctx.save();
+  ctx.translate(S.view.tx, S.view.ty);
+  ctx.scale(sc, sc);
+
+  ctx.imageSmoothingEnabled = sc < 3;
+  ctx.drawImage(S.img, 0, 0);
+
+  var env = {
+    forExport: false,
+    lw: Math.max(S.thick, 1.2 / sc),
+    hair: 1 / sc,
+    handle: 5 / sc,
+    label: 13 / sc,
+    x0: -S.view.tx / sc, y0: -S.view.ty / sc,
+    x1: (CW - S.view.tx) / sc, y1: (CH - S.view.ty) / sc
+  };
+  // keep the overlay inside the sheet, so the screen matches the export
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, S.img.naturalWidth, S.img.naturalHeight);
+  ctx.clip();
+  overlay(ctx, env);
+  ctx.restore();
+
+  ctx.restore();
+
+  document.getElementById("zVal").textContent = Math.round(sc * 100) + "%";
+}
+
+/* ---------------- hit testing ---------------- */
+function hitTest(p){
+  var tol = 10 / S.view.scale;
+  for (var i = S.shapes.length - 1; i >= 0; i--){
+    var s = S.shapes[i];
+    if (s.type === "line"){
+      if (dist(p.x, p.y, s.x1, s.y1) < tol) return {id: s.id, part: "p1"};
+      if (dist(p.x, p.y, s.x2, s.y2) < tol) return {id: s.id, part: "p2"};
+      if (distToSeg(p.x, p.y, s.x1, s.y1, s.x2, s.y2) < tol) return {id: s.id, part: "body"};
+    } else {
+      var d = dist(p.x, p.y, s.cx, s.cy);
+      if (Math.abs(d - s.r) < tol) return {id: s.id, part: "ring"};
+      if (d < s.r) return {id: s.id, part: "body"};
+    }
+  }
+  if (S.alif){
+    var a = S.alif;
+    if (dist(p.x, p.y, a.x1, a.y1) < tol) return {id: "alif", part: "p1"};
+    if (dist(p.x, p.y, a.x2, a.y2) < tol) return {id: "alif", part: "p2"};
+    if (distToSeg(p.x, p.y, a.x1, a.y1, a.x2, a.y2) < tol) return {id: "alif", part: "body"};
+  }
+  return null;
+}
+function byId(id){
+  if (id === "alif") return S.alif;
+  for (var i = 0; i < S.shapes.length; i++) if (S.shapes[i].id === id) return S.shapes[i];
+  return null;
+}
+
+/* ---------------- undo ---------------- */
+function snapshot(){
+  undoStack.push(JSON.stringify({a: S.alif, s: S.shapes}));
+  if (undoStack.length > 80) undoStack.shift();
+}
+function undo(){
+  if (!undoStack.length) return;
+  var st = JSON.parse(undoStack.pop());
+  S.alif = st.a; S.shapes = st.s; S.sel = null;
+  draw(); renderPanel();
+}
+
+/* ---------------- pointer interaction ---------------- */
+var drag = null;
+
+cv.addEventListener("pointerdown", function(ev){
+  if (!S.img) return;
+  cv.setPointerCapture(ev.pointerId);
+  var p = toImg(ev);
+
+  if (ev.button === 1 || spaceDown){
+    drag = {mode: "pan", sx: ev.clientX, sy: ev.clientY, tx: S.view.tx, ty: S.view.ty};
+    return;
+  }
+
+  if (S.tool === "alif"){
+    snapshot();
+    S.alif = {x1: p.x, y1: p.y, x2: p.x, y2: p.y};
+    S.sel = "alif";
+    drag = {mode: "draw-end", id: "alif", fresh: true};
+    draw(); renderPanel(); return;
+  }
+  if (S.tool === "line"){
+    snapshot();
+    var ln = {id: nextId++, type: "line", color: S.color, x1: p.x, y1: p.y, x2: p.x, y2: p.y};
+    S.shapes.push(ln); S.sel = ln.id;
+    drag = {mode: "draw-end", id: ln.id, fresh: true};
+    draw(); renderPanel(); return;
+  }
+  if (S.tool === "circle"){
+    snapshot();
+    var ci = {id: nextId++, type: "circle", color: S.color, cx: p.x, cy: p.y, r: 0};
+    S.shapes.push(ci); S.sel = ci.id;
+    drag = {mode: "draw-radius", id: ci.id, fresh: true};
+    draw(); renderPanel(); return;
+  }
+
+  // select tool
+  var h = hitTest(p);
+  if (!h){
+    S.sel = null;
+    drag = {mode: "pan", sx: ev.clientX, sy: ev.clientY, tx: S.view.tx, ty: S.view.ty};
+    draw(); renderPanel(); return;
+  }
+  S.sel = h.id;
+  snapshot();
+  var o = byId(h.id);
+  if (h.part === "body"){
+    drag = {mode: "move", id: h.id, px: p.x, py: p.y, o: JSON.parse(JSON.stringify(o))};
+  } else if (h.part === "ring"){
+    drag = {mode: "radius", id: h.id};
+  } else {
+    drag = {mode: "endpoint", id: h.id, which: h.part};
+  }
+  draw(); renderPanel();
+});
+
+cv.addEventListener("pointermove", function(ev){
+  if (!S.img) return;
+  if (!drag){
+    if (S.tool === "select"){
+      var hh = hitTest(toImg(ev));
+      cv.style.cursor = hh ? "move" : "grab";
+    } else cv.style.cursor = "crosshair";
+    return;
+  }
+  var p = toImg(ev);
+
+  if (drag.mode === "pan"){
+    S.view.tx = drag.tx + (ev.clientX - drag.sx);
+    S.view.ty = drag.ty + (ev.clientY - drag.sy);
+    draw(); return;
+  }
+
+  var o = byId(drag.id);
+  if (!o) return;
+
+  if (drag.mode === "draw-end" || drag.mode === "endpoint"){
+    var ax, ay;
+    if (drag.mode === "endpoint" && drag.which === "p1"){ ax = "x1"; ay = "y1"; }
+    else { ax = "x2"; ay = "y2"; }
+    var anchorX = (ax === "x1") ? o.x2 : o.x1, anchorY = (ax === "x1") ? o.y2 : o.y1;
+    var q = {x: p.x, y: p.y};
+    if (ev.shiftKey){
+      if (drag.id === "alif"){
+        if (Math.abs(p.x - anchorX) < Math.abs(p.y - anchorY)) q.x = anchorX; else q.y = anchorY;
+      } else {
+        var dx = p.x - anchorX, dy = p.y - anchorY;
+        var L = Math.hypot(dx, dy), ang = Math.round(Math.atan2(dy, dx) / (Math.PI/12)) * (Math.PI/12);
+        q.x = anchorX + Math.cos(ang) * L; q.y = anchorY + Math.sin(ang) * L;
+      }
+    }
+    o[ax] = q.x; o[ay] = q.y;
+  }
+  else if (drag.mode === "draw-radius" || drag.mode === "radius"){
+    o.r = dist(p.x, p.y, o.cx, o.cy);
+  }
+  else if (drag.mode === "move"){
+    var mx = p.x - drag.px, my = p.y - drag.py, b = drag.o;
+    if (o.type === "circle"){ o.cx = b.cx + mx; o.cy = b.cy + my; }
+    else { o.x1 = b.x1 + mx; o.y1 = b.y1 + my; o.x2 = b.x2 + mx; o.y2 = b.y2 + my; }
+  }
+  draw(); renderPanel();
+});
+
+function endDrag(){
+  if (drag && drag.fresh){
+    var o = byId(drag.id);
+    var tiny = o && (o.type === "circle" ? o.r * S.view.scale < 4
+                                         : dist(o.x1, o.y1, o.x2, o.y2) * S.view.scale < 5);
+    if (tiny){
+      if (drag.id === "alif") S.alif = null;
+      else S.shapes = S.shapes.filter(function(s){ return s.id !== drag.id; });
+      S.sel = null;
+      undoStack.pop();
+    } else if (drag.id === "alif"){
+      setTool("select");
+    }
+  }
+  drag = null;
+  draw(); renderPanel();
+}
+cv.addEventListener("pointerup", endDrag);
+cv.addEventListener("pointercancel", endDrag);
+
+cv.addEventListener("wheel", function(ev){
+  if (!S.img) return;
+  ev.preventDefault();
+  var rect = cv.getBoundingClientRect();
+  var f = Math.pow(0.9992, ev.deltaY * (ev.deltaMode === 1 ? 18 : 1));
+  zoomAt(ev.clientX - rect.left, ev.clientY - rect.top, f);
+}, {passive: false});
+
+/* ---------------- panel ---------------- */
+function setTool(t){
+  S.tool = t;
+  var btns = document.querySelectorAll(".tool");
+  for (var i = 0; i < btns.length; i++)
+    btns[i].setAttribute("aria-pressed", String(btns[i].dataset.tool === t));
+  cv.style.cursor = (t === "select") ? "grab" : "crosshair";
+  var hints = {
+    select: "Drag a shape to move it; drag a circle&rsquo;s edge to resize, or a line&rsquo;s end to stretch it.",
+    alif:   "Drag from the top of the alif to its foot. Everything else is measured against it.",
+    line:   "Drag to draw a straight measure.",
+    circle: "Drag out from the centre. Circles are always true circles."
+  };
+  document.getElementById("toolHint").innerHTML = hints[t];
+}
+
+function renderPanel(){
+  var L = alifLen();
+  document.getElementById("alifVal").innerHTML = L > 0
+    ? Math.round(L) + " <small>px</small>"
+    : "&mdash;";
+  document.getElementById("alifSub").innerHTML = L > 0
+    ? "One grid square = " + (L / S.grid.div).toFixed(1) + " px &middot; " + S.grid.div + " to the alif"
+    : "Pick the Alif tool and drag along the alif.";
+
+  var list = document.getElementById("mlist");
+  list.innerHTML = "";
+  if (!S.shapes.length){
+    var e = document.createElement("p");
+    e.className = "empty";
+    e.textContent = "No lines or circles yet.";
+    list.appendChild(e);
+    return;
+  }
+  S.shapes.forEach(function(s){
+    var r = readout(s);
+    var row = document.createElement("div");
+    row.className = "mrow" + (S.sel === s.id ? " sel" : "");
+
+    var dot = document.createElement("span");
+    dot.className = "dot"; dot.style.background = s.color;
+
+    var mid = document.createElement("div");
+    var f = document.createElement("div");
+    f.className = "frac";
+    f.innerHTML = '<span>' + r.frac + '</span><em>' + r.acc + '</em>';
+    var m = document.createElement("div");
+    m.className = "meta";
+    var what = s.type === "line" ? "line" : (S.circMode === "diameter" ? "circle ⌀" : "circle r");
+    m.textContent = what + " · " + Math.round(measureOf(s)) + " px"
+      + (r.ratio !== null ? " · " + r.ratio.toFixed(3) + "×" : "");
+    mid.appendChild(f); mid.appendChild(m);
+
+    var del = document.createElement("button");
+    del.className = "del"; del.title = "Delete"; del.innerHTML = "&times;";
+    del.addEventListener("click", function(ev){
+      ev.stopPropagation();
+      snapshot();
+      S.shapes = S.shapes.filter(function(x){ return x.id !== s.id; });
+      if (S.sel === s.id) S.sel = null;
+      draw(); renderPanel();
+    });
+
+    row.appendChild(dot); row.appendChild(mid); row.appendChild(del);
+    row.addEventListener("click", function(){ S.sel = s.id; setTool("select"); draw(); renderPanel(); });
+    list.appendChild(row);
+  });
+}
+
+/* swatches */
+function buildSwatches(host, current, onPick, small){
+  host.innerHTML = "";
+  PALETTE.forEach(function(p){
+    var b = document.createElement("button");
+    b.className = "sw" + (small ? " small" : "");
+    b.style.background = p[1];
+    b.title = p[0];
+    b.setAttribute("aria-label", p[0]);
+    b.setAttribute("aria-pressed", String(current() === p[1]));
+    b.addEventListener("click", function(){ onPick(p[1]); });
+    host.appendChild(b);
+  });
+}
+function refreshSwatches(){
+  buildSwatches(document.getElementById("inkSw"), function(){ return S.color; }, function(hex){
+    S.color = hex;
+    var o = S.sel && S.sel !== "alif" ? byId(S.sel) : null;
+    if (o){ snapshot(); o.color = hex; }
+    else if (S.sel === "alif"){ S.alifColor = hex; }
+    refreshSwatches(); draw(); renderPanel();
+  }, false);
+  buildSwatches(document.getElementById("gridSw"), function(){ return S.gridColor; }, function(hex){
+    S.gridColor = hex; refreshSwatches(); draw();
+  }, true);
+}
+
+/* ---------------- controls ---------------- */
+document.querySelectorAll(".tool").forEach(function(b){
+  b.addEventListener("click", function(){ setTool(b.dataset.tool); });
+});
+document.getElementById("gridOn").addEventListener("change", function(e){ S.grid.on = e.target.checked; draw(); });
+document.getElementById("gridDiv").addEventListener("change", function(e){ S.grid.div = +e.target.value; draw(); renderPanel(); });
+document.getElementById("gridOp").addEventListener("input", function(e){
+  S.grid.op = +e.target.value / 100;
+  document.getElementById("gridOpV").textContent = e.target.value + "%";
+  draw();
+});
+document.getElementById("gridAlign").addEventListener("change", function(e){ S.grid.align = e.target.checked; draw(); });
+document.getElementById("thick").addEventListener("input", function(e){
+  S.thick = +e.target.value;
+  document.getElementById("thickV").textContent = e.target.value + "px";
+  draw();
+});
+document.getElementById("circMode").addEventListener("change", function(e){ S.circMode = e.target.value; draw(); renderPanel(); });
+document.getElementById("maxDen").addEventListener("change", function(e){ S.maxDen = +e.target.value; draw(); renderPanel(); });
+document.getElementById("showLabels").addEventListener("change", function(e){ S.labels = e.target.checked; draw(); });
+document.getElementById("btnUndo").addEventListener("click", undo);
+document.getElementById("btnClear").addEventListener("click", function(){
+  if (!S.shapes.length) return;
+  snapshot(); S.shapes = []; S.sel = null; draw(); renderPanel();
+});
+document.getElementById("zIn").addEventListener("click", function(){ zoomAt(CW/2, CH/2, 1.25); });
+document.getElementById("zOut").addEventListener("click", function(){ zoomAt(CW/2, CH/2, 0.8); });
+document.getElementById("zFit").addEventListener("click", fitView);
+
+document.addEventListener("keydown", function(ev){
+  var t = ev.target.tagName;
+  if (t === "INPUT" || t === "SELECT" || t === "TEXTAREA") return;
+  if (ev.code === "Space"){ spaceDown = true; cv.style.cursor = "grab"; ev.preventDefault(); return; }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z"){ ev.preventDefault(); undo(); return; }
+  if (ev.key === "Delete" || ev.key === "Backspace"){
+    if (S.sel){
+      ev.preventDefault(); snapshot();
+      if (S.sel === "alif") S.alif = null;
+      else S.shapes = S.shapes.filter(function(s){ return s.id !== S.sel; });
+      S.sel = null; draw(); renderPanel();
+    }
+    return;
+  }
+  var k = ev.key.toLowerCase();
+  if (k === "v") setTool("select");
+  else if (k === "a") setTool("alif");
+  else if (k === "l") setTool("line");
+  else if (k === "c") setTool("circle");
+  else if (k === "g"){
+    S.grid.on = !S.grid.on;
+    document.getElementById("gridOn").checked = S.grid.on;
+    draw();
+  }
+  else if (k === "0") fitView();
+  else if (ev.key === "Escape"){ S.sel = null; draw(); renderPanel(); }
+});
+document.addEventListener("keyup", function(ev){
+  if (ev.code === "Space"){ spaceDown = false; cv.style.cursor = S.tool === "select" ? "grab" : "crosshair"; }
+});
+
+/* ---------------- loading images ---------------- */
+function loadImage(src, name){
+  var im = new Image();
+  im.onload = function(){
+    S.img = im; S.name = name; S.isSample = false;
+    S.alif = null; S.shapes = []; S.sel = null; undoStack = [];
+    S.thick = Math.max(2, Math.round(Math.hypot(im.naturalWidth, im.naturalHeight) / 700));
+    var th = document.getElementById("thick");
+    th.value = Math.min(40, S.thick);
+    S.thick = +th.value;
+    document.getElementById("thickV").textContent = S.thick + "px";
+    document.getElementById("fname").textContent = name;
+    document.getElementById("drop").hidden = true;
+    setTool("alif");
+    fitView(); renderPanel();
+  };
+  im.onerror = function(){ alert("That file could not be read as an image."); };
+  im.src = src;
+}
+function loadFile(file){
+  if (!file || !/^image\//.test(file.type)) return;
+  var fr = new FileReader();
+  fr.onload = function(){ loadImage(fr.result, file.name); };
+  fr.readAsDataURL(file);
+}
+document.getElementById("btnOpen").addEventListener("click", function(){ document.getElementById("fileIn").click(); });
+document.getElementById("fileIn").addEventListener("change", function(e){
+  if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+  e.target.value = "";
+});
+["dragenter","dragover"].forEach(function(t){
+  stage.addEventListener(t, function(e){ e.preventDefault(); stage.classList.add("over"); document.getElementById("drop").hidden = false; });
+});
+["dragleave","drop"].forEach(function(t){
+  stage.addEventListener(t, function(e){
+    e.preventDefault(); stage.classList.remove("over");
+    if (S.img) document.getElementById("drop").hidden = true;
+    if (t === "drop" && e.dataTransfer && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+});
+window.addEventListener("paste", function(e){
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (var i = 0; i < items.length; i++){
+    if (items[i].type.indexOf("image") === 0){ loadFile(items[i].getAsFile()); break; }
+  }
+});
+
+/* ---------------- export ---------------- */
+document.getElementById("btnExport").addEventListener("click", function(){
+  if (!S.img) return;
+  var iw = S.img.naturalWidth, ih = S.img.naturalHeight;
+  var c = document.createElement("canvas");
+  c.width = iw; c.height = ih;
+  var x = c.getContext("2d");
+  x.drawImage(S.img, 0, 0);
+  var diag = Math.hypot(iw, ih);
+  overlay(x, {
+    forExport: true,
+    lw: S.thick,
+    hair: Math.max(1, diag / 2400),
+    handle: Math.max(4, diag / 320),
+    label: Math.max(13, diag / 95),
+    x0: 0, y0: 0, x1: iw, y1: ih
+  });
+  c.toBlob(function(blob){
+    var url = URL.createObjectURL(blob);
+    var base = (S.name || "image").replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "-").slice(0, 40);
+    showExport(url, "mizan-" + base + ".png");
+  }, "image/png");
+});
+
+function showExport(url, filename){
+  var m = document.createElement("div");
+  m.className = "modal";
+  var sheet = document.createElement("div");
+  sheet.className = "sheet";
+  var im = document.createElement("img");
+  im.src = url; im.alt = "Exported measurement sheet";
+  var foot = document.createElement("div");
+  foot.className = "foot";
+  var a = document.createElement("a");
+  a.className = "btn primary"; a.href = url; a.download = filename; a.textContent = "Save PNG";
+  var p = document.createElement("p");
+  p.textContent = "If the download is blocked, right-click the image above and choose “Save image as…”";
+  var close = document.createElement("button");
+  close.className = "btn"; close.textContent = "Close";
+  close.addEventListener("click", function(){ document.body.removeChild(m); URL.revokeObjectURL(url); });
+  foot.appendChild(a); foot.appendChild(close); foot.appendChild(p);
+  sheet.appendChild(im); sheet.appendChild(foot);
+  m.appendChild(sheet);
+  m.addEventListener("click", function(e){ if (e.target === m) close.click(); });
+  document.body.appendChild(m);
+}
+
+/* ---------------- sample specimen ----------------
+   Drawn here rather than shipped as a file: a word set in Amiri on a
+   toned ground, with a lone alif at the left whose exact extent we
+   know, so the app can open already measured. -------------------- */
+function buildSample(){
+  var W = 1500, H = 820;
+  var c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  var x = c.getContext("2d");
+
+  var g = x.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, "#F1E8D5"); g.addColorStop(1, "#E2D4B6");
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.globalAlpha = 0.05;
+  for (var i = 0; i < 2600; i++){
+    x.fillStyle = i % 3 ? "#8A7346" : "#4A3A1E";
+    x.fillRect(Math.random()*W, Math.random()*H, 2, 2);
+  }
+  x.globalAlpha = 1;
+  var vg = x.createRadialGradient(W/2, H/2, H*0.32, W/2, H/2, H*0.95);
+  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(60,44,20,.20)");
+  x.fillStyle = vg; x.fillRect(0, 0, W, H);
+
+  var baseline = 560, size = 300;
+  x.fillStyle = "#241A10";
+
+  x.textAlign = "right"; x.textBaseline = "alphabetic";
+  x.direction = "rtl";
+  x.font = '400 ' + size + 'px Amiri, "Times New Roman", serif';
+  x.fillText("بسم الله", W - 170, baseline);
+
+  x.direction = "ltr"; x.textAlign = "center";
+  var alifX = 250;
+  x.fillText("ا", alifX, baseline);
+  var m = x.measureText("ا");
+  var asc = m.actualBoundingBoxAscent || size * 0.72;
+  var desc = m.actualBoundingBoxDescent || 0;
+
+  var im = new Image();
+  im.onload = function(){
+    S.img = im;
+    S.name = "Sample specimen — Amiri";
+    S.isSample = true;
+    S.thick = 3;
+    S.alif = {x1: alifX, y1: baseline - asc, x2: alifX, y2: baseline + desc};
+    var L = alifLen();
+    // The classical dā'ira: a circle whose diameter is the alif.
+    S.shapes = [
+      {id: nextId++, type: "circle", color: PALETTE[2][1], cx: alifX, cy: baseline - asc/2, r: L/2},
+      {id: nextId++, type: "line",  color: PALETTE[0][1],
+       x1: 560, y1: baseline + 120, x2: 560 + L*0.49, y2: baseline + 120}
+    ];
+    document.getElementById("fname").textContent = S.name;
+    fitView(); renderPanel();
+  };
+  im.src = c.toDataURL("image/png");
+}
+
+/* ---------------- boot ---------------- */
+new ResizeObserver(resize).observe(stage);
+setTool("select");
+refreshSwatches();
+renderPanel();
+resize();
+
+function start(){ try { buildSample(); } catch (e) { document.getElementById("drop").hidden = false; } }
+if (document.fonts && document.fonts.load){
+  Promise.race([
+    document.fonts.load('400 300px Amiri').then(function(){ return document.fonts.ready; }),
+    new Promise(function(res){ setTimeout(res, 2500); })
+  ]).then(start, start);
+} else start();
+
+})();
+</script>
+<!-- ARTIFACT:END -->
+</body>
+</html>
