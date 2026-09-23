@@ -155,6 +155,17 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line2);
 .zoombar .z{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--dim);
   min-width:46px;text-align:center;font-variant-numeric:tabular-nums}
 
+.rotbar{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;display:flex;gap:2px;
+  align-items:center;background:rgba(12,14,18,.82);border:1px solid var(--line);border-radius:8px;
+  padding:5px 7px}
+.rotbar button{border:none;background:transparent;color:var(--dim);cursor:pointer;
+  width:28px;height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center}
+.rotbar button:hover{background:var(--panel3);color:var(--text)}
+.rotbar button.z{width:auto;min-width:52px;padding:0 6px;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11.5px;font-variant-numeric:tabular-nums}
+.rotbar button.z.off{color:var(--gold)}
+@media (max-width:520px){.rotbar{left:auto;right:12px;transform:none}}
+
 .modal{position:fixed;inset:0;background:rgba(6,8,11,.88);display:flex;align-items:center;
   justify-content:center;padding:24px;z-index:50}
 .modal .sheet{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:16px;
@@ -292,6 +303,8 @@ a.btn{text-decoration:none}
         <p class="hint">
           <b>Shift</b> while drawing — snap a line to 15° steps, an alif to true vertical.<br>
           <b>Scroll</b> to zoom, <b>drag empty space</b> or hold <b>Space</b> to pan, <b>0</b> to fit.<br>
+          <b>[</b> and <b>]</b> straighten the sheet a degree at a time, as do the arrows
+          under the image &mdash; hold <b>Shift</b> for 90&deg;, <b>Alt</b> for a tenth.<br>
           <b>Backspace</b> deletes the selection, <b>Ctrl+Z</b> undoes, <b>Ctrl+V</b> pastes an image.
         </p>
       </div>
@@ -311,6 +324,15 @@ a.btn{text-decoration:none}
         <span class="z" id="zVal">100%</span>
         <button id="zIn" title="Zoom in">+</button>
         <button id="zFit" title="Fit to view" style="width:auto;padding:0 7px;font-size:11px">FIT</button>
+      </div>
+      <div class="rotbar">
+        <button id="rotL" title="Rotate anticlockwise 1° · Shift 90° · Alt 0.1° · key [">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 8a5.4 5.4 0 1 0 1.6-3.8"/><path d="M2.2 2.4v3.2h3.2"/></svg>
+        </button>
+        <button class="z" id="rotVal" title="Straighten back to 0°">0.0°</button>
+        <button id="rotR" title="Rotate clockwise 1° · Shift 90° · Alt 0.1° · key ]">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8a5.4 5.4 0 1 1-1.6-3.8"/><path d="M13.8 2.4v3.2h-3.2"/></svg>
+        </button>
       </div>
     </div>
   </div>
@@ -354,6 +376,7 @@ var GRID_PALETTE = [["Black", "#000000"], ["White", "#FFFFFF"]].concat(PALETTE);
 var S = {
   img: null, name: "Sample specimen", isSample: true,
   view: {scale: 1, tx: 0, ty: 0},
+  rot: 0,                     // the sheet is turned under a square grid
   alif: null,                 // {x1,y1,x2,y2}
   shapes: [],                 // {id,type,color,...}
   sel: null,
@@ -432,6 +455,80 @@ function canvasLabel(s){
   return fracLabel(b) + "  (" + Math.round(b.acc) + "%)";
 }
 
+/* ---------------- straightening ----------------
+   The image is drawn turned about its own centre, and the marks are turned
+   with it, so they stay where you put them. The grid stays square to the
+   canvas — which is the point: you turn the photograph until the script
+   lines up with the grid, rather than tilting the grid to chase the script. */
+function sheetCorners(){
+  var iw = S.img.naturalWidth, ih = S.img.naturalHeight;
+  var co = Math.cos(S.rot), si = Math.sin(S.rot), hw = iw / 2, hh = ih / 2;
+  var q = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]], out = [];
+  for (var i = 0; i < 4; i++)
+    out.push([hw + q[i][0]*co - q[i][1]*si, hh + q[i][0]*si + q[i][1]*co]);
+  return out;
+}
+function sheetBox(){
+  var c = sheetCorners();
+  var xs = [c[0][0], c[1][0], c[2][0], c[3][0]], ys = [c[0][1], c[1][1], c[2][1], c[3][1]];
+  var x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
+  return {x: x, y: y, w: Math.max.apply(null, xs) - x, h: Math.max.apply(null, ys) - y};
+}
+function drawSheet(c){
+  var iw = S.img.naturalWidth, ih = S.img.naturalHeight;
+  c.save();
+  c.translate(iw / 2, ih / 2);
+  c.rotate(S.rot);
+  c.drawImage(S.img, -iw / 2, -ih / 2);
+  c.restore();
+}
+function clipSheet(c){
+  var q = sheetCorners();
+  c.beginPath();
+  c.moveTo(q[0][0], q[0][1]);
+  for (var i = 1; i < 4; i++) c.lineTo(q[i][0], q[i][1]);
+  c.closePath();
+  c.clip();
+}
+
+function rotateBy(delta){
+  if (!S.img || !delta) return;
+  var iw = S.img.naturalWidth, ih = S.img.naturalHeight, cx = iw / 2, cy = ih / 2;
+  var co = Math.cos(delta), si = Math.sin(delta);
+  function turn(o, xk, yk){
+    var dx = o[xk] - cx, dy = o[yk] - cy;
+    o[xk] = cx + dx * co - dy * si;
+    o[yk] = cy + dx * si + dy * co;
+  }
+  S.shapes.forEach(function(s){
+    if (s.type === "line"){ turn(s, "x1", "y1"); turn(s, "x2", "y2"); }
+    else turn(s, "cx", "cy");
+  });
+  if (S.alif){ turn(S.alif, "x1", "y1"); turn(S.alif, "x2", "y2"); }
+  S.rot += delta;
+  if (Math.abs(S.rot) < 1e-9) S.rot = 0;
+  renderRot();
+  draw();
+}
+
+function renderRot(){
+  var deg = S.rot * 180 / Math.PI;
+  while (deg > 180) deg -= 360;
+  while (deg <= -180) deg += 360;
+  var b = document.getElementById("rotVal");
+  b.textContent = (Math.abs(deg) < 0.05 ? "0.0" : deg.toFixed(1)) + "°";
+  b.className = "z" + (Math.abs(deg) < 0.05 ? "" : " off");
+}
+
+function rotStep(ev){
+  if (ev && ev.shiftKey) return Math.PI / 2;
+  if (ev && ev.altKey) return Math.PI / 1800;
+  return Math.PI / 180;
+}
+document.getElementById("rotL").addEventListener("click", function(ev){ rotateBy(-rotStep(ev)); });
+document.getElementById("rotR").addEventListener("click", function(ev){ rotateBy(rotStep(ev)); });
+document.getElementById("rotVal").addEventListener("click", function(){ rotateBy(-S.rot); });
+
 /* ---------------- view ---------------- */
 function toImg(ev){
   var rect = cv.getBoundingClientRect();
@@ -442,10 +539,11 @@ function toImg(ev){
 }
 function fitView(){
   if (!S.img) return;
-  var s = Math.min(CW / S.img.naturalWidth, CH / S.img.naturalHeight) * 0.92;
+  var b = sheetBox();
+  var s = Math.min(CW / b.w, CH / b.h) * 0.92;
   S.view.scale = s;
-  S.view.tx = (CW - S.img.naturalWidth * s) / 2;
-  S.view.ty = (CH - S.img.naturalHeight * s) / 2;
+  S.view.tx = (CW - b.w * s) / 2 - b.x * s;
+  S.view.ty = (CH - b.h * s) / 2 - b.y * s;
   draw();
 }
 function zoomAt(cx, cy, factor){
@@ -626,7 +724,7 @@ function draw(){
   ctx.scale(sc, sc);
 
   ctx.imageSmoothingEnabled = sc < 3;
-  ctx.drawImage(S.img, 0, 0);
+  drawSheet(ctx);
 
   var env = {
     forExport: false,
@@ -639,9 +737,7 @@ function draw(){
   };
   // keep the overlay inside the sheet, so the screen matches the export
   ctx.save();
-  ctx.beginPath();
-  ctx.rect(0, 0, S.img.naturalWidth, S.img.naturalHeight);
-  ctx.clip();
+  clipSheet(ctx);
   overlay(ctx, env);
   if (S.pending && S.ghost){
     var g = makeStamp(S.ghost);
@@ -689,13 +785,15 @@ function byId(id){
 
 /* ---------------- undo ---------------- */
 function snapshot(){
-  undoStack.push(JSON.stringify({a: S.alif, s: S.shapes}));
+  undoStack.push(JSON.stringify({a: S.alif, s: S.shapes, r: S.rot}));
   if (undoStack.length > 80) undoStack.shift();
 }
 function undo(){
   if (!undoStack.length) return;
   var st = JSON.parse(undoStack.pop());
   S.alif = st.a; S.shapes = st.s; S.sel = null;
+  S.rot = st.r || 0;               // marks and sheet are only meaningful together
+  renderRot();
   draw(); renderPanel();
 }
 
@@ -1097,6 +1195,8 @@ document.addEventListener("keydown", function(ev){
     draw();
   }
   else if (k === "0") fitView();
+  else if (ev.key === "["){ ev.preventDefault(); rotateBy(-rotStep(ev)); }
+  else if (ev.key === "]"){ ev.preventDefault(); rotateBy(rotStep(ev)); }
   else if (ev.key === "Escape"){ cancelStamp(); S.sel = null; draw(); renderPanel(); }
 });
 document.addEventListener("keyup", function(ev){
@@ -1109,6 +1209,7 @@ function loadImage(src, name){
   im.onload = function(){
     S.img = im; S.name = name; S.isSample = false;
     S.alif = null; S.shapes = []; S.sel = null; undoStack = [];
+    S.rot = 0; renderRot();
     S.thick = Math.max(2, Math.round(Math.hypot(im.naturalWidth, im.naturalHeight) / 700));
     var th = document.getElementById("thick");
     th.value = Math.min(40, S.thick);
@@ -1154,19 +1255,22 @@ window.addEventListener("paste", function(e){
 /* ---------------- export ---------------- */
 document.getElementById("btnExport").addEventListener("click", function(){
   if (!S.img) return;
-  var iw = S.img.naturalWidth, ih = S.img.naturalHeight;
+  var b = sheetBox();
   var c = document.createElement("canvas");
-  c.width = iw; c.height = ih;
+  c.width = Math.max(1, Math.round(b.w));
+  c.height = Math.max(1, Math.round(b.h));
   var x = c.getContext("2d");
-  x.drawImage(S.img, 0, 0);
-  var diag = Math.hypot(iw, ih);
+  x.translate(-b.x, -b.y);          // a turned sheet needs a wider frame
+  drawSheet(x);
+  clipSheet(x);
+  var diag = Math.hypot(b.w, b.h);
   overlay(x, {
     forExport: true,
     lw: S.thick,
     hair: Math.max(1, diag / 2400),
     handle: Math.max(4, diag / 320),
     label: Math.max(13, diag / 95),
-    x0: 0, y0: 0, x1: iw, y1: ih
+    x0: b.x, y0: b.y, x1: b.x + b.w, y1: b.y + b.h
   });
   c.toBlob(function(blob){
     var url = URL.createObjectURL(blob);
@@ -1288,6 +1392,7 @@ function buildSample(){
 new ResizeObserver(resize).observe(stage);
 setTool("select");
 refreshSwatches();
+renderRot();
 renderPanel();
 resize();
 

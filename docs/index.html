@@ -71,7 +71,7 @@ figure img{width:100%;height:auto;display:block;border-radius:10px;border:1px so
   background:#0C0E12}
 figcaption{margin-top:11px;font-size:13px;color:var(--faint);max-width:62ch}
 
-/* the four steps really are a sequence, so they are numbered */
+/* the steps really are a sequence, so they are numbered */
 .steps{list-style:none;padding:0;margin-top:28px;display:grid;gap:2px}
 .steps li{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;
   padding:18px 0;border-top:1px solid var(--line)}
@@ -163,7 +163,7 @@ footer a:hover{color:var(--gold);border-color:var(--gold)}
 <section>
   <div class="wrap">
     <p class="kicker">How it works</p>
-    <h2>Four steps, then arithmetic</h2>
+    <h2>Five steps, then arithmetic</h2>
     <ol class="steps">
       <li>
         <span class="n">01</span>
@@ -176,13 +176,23 @@ footer a:hover{color:var(--gold);border-color:var(--gold)}
       <li>
         <span class="n">02</span>
         <div>
+          <h3>Straighten it, if it needs it</h3>
+          <p>Two arrows beneath the image turn the sheet a degree at a time. The grid
+            stays square while the photograph turns under it, so you straighten until the
+            script comes into line — and anything you have already drawn turns with the
+            sheet rather than sliding off it.</p>
+        </div>
+      </li>
+      <li>
+        <span class="n">03</span>
+        <div>
           <h3>Drag along one alif</h3>
           <p>That single measurement is the unit. Hold <code>Shift</code> to lock it to
             true vertical, or let it follow a slanted hand and tilt the grid to match.</p>
         </div>
       </li>
       <li>
-        <span class="n">03</span>
+        <span class="n">04</span>
         <div>
           <h3>Read the grid</h3>
           <p>The alif is divided into equal parts — eight by default, with five and nine
@@ -191,7 +201,7 @@ footer a:hover{color:var(--gold);border-color:var(--gold)}
         </div>
       </li>
       <li>
-        <span class="n">04</span>
+        <span class="n">05</span>
         <div>
           <h3>Draw, or place an exact ratio</h3>
           <p>Lines and true circles, each labelled with its fraction of the alif. Export
@@ -270,6 +280,7 @@ footer a:hover{color:var(--gold);border-color:var(--gold)}
       <tr><td>Scroll &nbsp;·&nbsp; 0</td><td>zoom · fit the image to the view</td></tr>
       <tr><td>Backspace</td><td>delete the selection</td></tr>
       <tr><td>Ctrl + Z</td><td>undo</td></tr>
+      <tr><td>[ &nbsp;·&nbsp; ]</td><td>straighten the sheet a degree at a time</td></tr>
       <tr><td>G &nbsp;·&nbsp; Esc</td><td>show or hide the grid · cancel a pending ratio</td></tr>
     </table>
   </div>

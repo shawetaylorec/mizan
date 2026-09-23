@@ -25,16 +25,22 @@ uploaded anywhere; the image stays on your machine.
 ## Using it
 
 1. **Open image** (or drag one onto the canvas, or paste with `Ctrl+V`).
-2. Pick the **Alif** tool and drag from the top of an alif to its foot. Hold `Shift`
+2. If the page was shot slightly askew, straighten it with the two arrows beneath the
+   image — a degree a click, `Shift` for 90°, `Alt` for a tenth of a degree. The grid
+   stays square while the photograph turns under it, so you straighten until the script
+   lines up rather than tilting the grid to chase it. Any marks already placed turn with
+   the sheet and stay where you put them; the readout turns gold once you are off zero,
+   and clicking it straightens back.
+3. Pick the **Alif** tool and drag from the top of an alif to its foot. Hold `Shift`
    to lock the measurement to true vertical.
-3. A grid appears, subdivided into equal parts of that alif — 8 by default, with
+4. A grid appears, subdivided into equal parts of that alif — 8 by default, with
    5 and 9 offered because those are the usual nuqta counts for naskh and thuluth.
    Heavier lines fall on whole alifs.
-4. Draw with the **Line** and **Circle** tools. Circles are drawn from the centre
+5. Draw with the **Line** and **Circle** tools. Circles are drawn from the centre
    outwards and are always true circles.
-5. Each shape is labelled with its ratio to the alif — `1/4 (98%)` means the shape
+6. Each shape is labelled with its ratio to the alif — `1/4 (98%)` means the shape
    is nearest to a quarter of an alif and sits within 98% of exactly that.
-6. **Export PNG** writes the image, the grid and your marks out at the original
+7. **Export PNG** writes the image, the grid and your marks out at the original
    resolution of the picture.
 
 ## Working the other way round
@@ -75,6 +81,7 @@ ratio, which is often the more honest number of the two.
 | Scroll | zoom · `0` fits the image to the view |
 | `Backspace` | delete the selection |
 | `Ctrl+Z` | undo |
+| `[` `]` | straighten the sheet by a degree |
 | `G` | show/hide the grid |
 
 Clicking a colour recolours the selected shape as well as setting the colour for
