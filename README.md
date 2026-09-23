@@ -1,14 +1,14 @@
-# Mizan · ميزان
+# Mansub · منسوب
 
 A small tool for measuring proportion in Arabic calligraphy.
 
 Everything in the classical system is measured against one reference — the height
-of the alif. Mizan asks you for that height once, builds a grid from it, and then
+of the alif. Mansub asks you for that height once, builds a grid from it, and then
 reports every line and circle you draw as a fraction of the alif, with a score for
 how close the fit is.
 
-**[shawetaylorec.github.io/mizan](https://shawetaylorec.github.io/mizan/)** — the site,
-and the tool itself runs at [/app.html](https://shawetaylorec.github.io/mizan/app.html).
+**[shawetaylorec.github.io/mansub](https://shawetaylorec.github.io/mansub/)** — the site,
+and the tool itself runs at [/app.html](https://shawetaylorec.github.io/mansub/app.html).
 
 **One file, no install.** Download `index.html` and open it in a browser. Nothing is
 uploaded anywhere; the image stays on your machine.

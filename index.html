@@ -6,7 +6,7 @@
 <!-- ARTIFACT:BEGIN · the app itself lives between these two markers; the
      surrounding html/head/body wrapper only exists so the file can be
      opened straight off disk. -->
-<title>Mizan</title>
+<title>Mansub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -218,8 +218,8 @@ a.btn{text-decoration:none}
 
   <div class="topbar">
     <div class="brand">
-      <span class="ar">ميزان</span>
-      <span class="en">Mizan</span>
+      <span class="ar">منسوب</span>
+      <span class="en">Mansub</span>
       <span class="tag">— proportion by the alif</span>
     </div>
     <span class="filename" id="fname">Sample specimen</span>
@@ -376,7 +376,7 @@ a.btn{text-decoration:none}
 "use strict";
 
 /* ---------------------------------------------------------------
-   Mizan — proportion measuring for Arabic calligraphy.
+   Mansub — proportion measuring for Arabic calligraphy.
    Everything is measured against one reference: the height of the
    alif, which in the classical system governs every other letter.
 ----------------------------------------------------------------*/
@@ -1426,7 +1426,7 @@ function getDownloads(){
 }
 
 function showExport(startScale){
-  var filename = "mizan-" +
+  var filename = "mansub-" +
     (S.name || "image").replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "-").slice(0, 40) + ".png";
   var blob = null, url = null, scale = startScale;
 
