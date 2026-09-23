@@ -7,8 +7,20 @@ of the alif. Mizan asks you for that height once, builds a grid from it, and the
 reports every line and circle you draw as a fraction of the alif, with a score for
 how close the fit is.
 
+**[shawetaylorec.github.io/mizan](https://shawetaylorec.github.io/mizan/)** — the site,
+and the tool itself runs at [/app.html](https://shawetaylorec.github.io/mizan/app.html).
+
 **One file, no install.** Download `index.html` and open it in a browser. Nothing is
 uploaded anywhere; the image stays on your machine.
+
+## Layout of the repo
+
+| | |
+|---|---|
+| `index.html` | the whole app — this is the file to download |
+| `docs/` | the website, served by GitHub Pages |
+| `docs/app.html` | a copy of the app, so the site can launch it |
+| `build.sh` | refreshes that copy after you change `index.html` |
 
 ## Using it
 
