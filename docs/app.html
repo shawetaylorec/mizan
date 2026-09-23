@@ -159,12 +159,31 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line2);
   align-items:center;background:rgba(12,14,18,.82);border:1px solid var(--line);border-radius:8px;
   padding:5px 7px}
 .rotbar button{border:none;background:transparent;color:var(--dim);cursor:pointer;
-  width:28px;height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center}
+  height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center}
 .rotbar button:hover{background:var(--panel3);color:var(--text)}
-.rotbar button.z{width:auto;min-width:52px;padding:0 6px;font-family:"IBM Plex Mono",ui-monospace,monospace;
+.rotbar button.z{min-width:54px;padding:0 6px;font-family:"IBM Plex Mono",ui-monospace,monospace;
   font-size:11.5px;font-variant-numeric:tabular-nums}
 .rotbar button.z.off{color:var(--gold)}
-@media (max-width:520px){.rotbar{left:auto;right:12px;transform:none}}
+.rotbar button.lbl{padding:0 8px;font-size:11px;letter-spacing:.04em}
+.rotbar button.lbl[aria-pressed="true"]{background:var(--gold-soft);color:var(--gold)}
+
+/* a ruled strip that runs under a fixed needle, like a straightening dial */
+.dial{position:relative;width:168px;height:26px;border-radius:5px;cursor:ew-resize;
+  border:1px solid var(--line);background-color:#0E1116;touch-action:none;
+  background-image:
+    repeating-linear-gradient(to right, rgba(224,169,59,.55) 0 1px, transparent 1px 50px),
+    repeating-linear-gradient(to right, var(--line2) 0 1px, transparent 1px 10px);
+  overflow:hidden}
+.dial:focus-visible{border-color:var(--gold)}
+.dial::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to right, #0E1116, rgba(14,17,22,0) 26%,
+                             rgba(14,17,22,0) 74%, #0E1116)}
+.dial .needle{position:absolute;left:50%;top:3px;bottom:3px;width:2px;border-radius:1px;
+  background:var(--gold);transform:translateX(-50%);z-index:1}
+@media (max-width:640px){
+  .rotbar{left:auto;right:12px;transform:none}
+  .dial{width:96px}
+}
 
 .modal{position:fixed;inset:0;background:rgba(6,8,11,.88);display:flex;align-items:center;
   justify-content:center;padding:24px;z-index:50}
@@ -173,7 +192,17 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line2);
 .modal img{max-width:100%;max-height:58vh;border-radius:6px;border:1px solid var(--line);
   object-fit:contain;background:#000}
 .modal .foot{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.modal .foot p{font-size:11.5px;color:var(--faint);flex:1 1 200px;line-height:1.5}
+.modal .foot p{font-size:11.5px;color:var(--faint);flex:1 1 200px;line-height:1.5;
+  font-family:"IBM Plex Mono",ui-monospace,monospace}
+.modal .sizes{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.modal .sizes button{border:1px solid var(--line2);background:var(--panel2);color:var(--dim);
+  border-radius:6px;padding:5px 11px;cursor:pointer;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12px}
+.modal .sizes button:hover{background:var(--panel3);color:var(--text)}
+.modal .sizes button[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-soft);
+  color:var(--gold);font-weight:600}
+.modal .dims{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--dim);
+  margin-left:6px;font-variant-numeric:tabular-nums}
 a.btn{text-decoration:none}
 
 @media (max-width:880px){
@@ -303,8 +332,8 @@ a.btn{text-decoration:none}
         <p class="hint">
           <b>Shift</b> while drawing — snap a line to 15° steps, an alif to true vertical.<br>
           <b>Scroll</b> to zoom, <b>drag empty space</b> or hold <b>Space</b> to pan, <b>0</b> to fit.<br>
-          <b>[</b> and <b>]</b> straighten the sheet a degree at a time, as do the arrows
-          under the image &mdash; hold <b>Shift</b> for 90&deg;, <b>Alt</b> for a tenth.<br>
+          <b>Drag the dial</b> under the image to straighten it &mdash; hold <b>Shift</b>
+          for hair-fine steps, or nudge a tenth of a degree with <b>[</b> and <b>]</b>.<br>
           <b>Backspace</b> deletes the selection, <b>Ctrl+Z</b> undoes, <b>Ctrl+V</b> pastes an image.
         </p>
       </div>
@@ -326,13 +355,15 @@ a.btn{text-decoration:none}
         <button id="zFit" title="Fit to view" style="width:auto;padding:0 7px;font-size:11px">FIT</button>
       </div>
       <div class="rotbar">
-        <button id="rotL" title="Rotate anticlockwise 1° · Shift 90° · Alt 0.1° · key [">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 8a5.4 5.4 0 1 0 1.6-3.8"/><path d="M2.2 2.4v3.2h3.2"/></svg>
-        </button>
+        <div class="dial" id="dial" tabindex="0" role="slider" aria-label="Straighten the sheet"
+             aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"
+             title="Drag to straighten · hold Shift for hair-fine steps · arrow keys nudge by 0.1°">
+          <span class="needle"></span>
+        </div>
         <button class="z" id="rotVal" title="Straighten back to 0°">0.0°</button>
-        <button id="rotR" title="Rotate clockwise 1° · Shift 90° · Alt 0.1° · key ]">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8a5.4 5.4 0 1 1-1.6-3.8"/><path d="M13.8 2.4v3.2h-3.2"/></svg>
-        </button>
+        <button class="lbl" id="rot90" title="Quarter-turn clockwise">90°</button>
+        <button class="lbl" id="cropBtn" aria-pressed="true"
+                title="Crop the turned sheet back to a rectangle">Crop</button>
       </div>
     </div>
   </div>
@@ -377,6 +408,7 @@ var S = {
   img: null, name: "Sample specimen", isSample: true,
   view: {scale: 1, tx: 0, ty: 0},
   rot: 0,                     // the sheet is turned under a square grid
+  crop: true,                 // and trimmed back to a rectangle as it turns
   alif: null,                 // {x1,y1,x2,y2}
   shapes: [],                 // {id,type,color,...}
   sel: null,
@@ -468,7 +500,31 @@ function sheetCorners(){
     out.push([hw + q[i][0]*co - q[i][1]*si, hh + q[i][0]*si + q[i][1]*co]);
   return out;
 }
+/* The largest upright rectangle that fits inside the turned sheet — the
+   standard straighten-and-crop rectangle, so no blank corners are left. */
+function insetRect(w, h, angle){
+  var sn = Math.abs(Math.sin(angle)), cs = Math.abs(Math.cos(angle));
+  var longer = w >= h, sideLong = longer ? w : h, sideShort = longer ? h : w;
+  var wr, hr;
+  if (sideShort <= 2 * sn * cs * sideLong || Math.abs(sn - cs) < 1e-10){
+    var half = 0.5 * sideShort;
+    if (sn < 1e-10 || cs < 1e-10){ wr = w; hr = h; }
+    else if (longer){ wr = half / sn; hr = half / cs; }
+    else { wr = half / cs; hr = half / sn; }
+  } else {
+    var cos2 = cs * cs - sn * sn;
+    wr = (w * cs - h * sn) / cos2;
+    hr = (h * cs - w * sn) / cos2;
+  }
+  return {w: Math.max(1, wr), h: Math.max(1, hr)};
+}
+
 function sheetBox(){
+  var iw = S.img.naturalWidth, ih = S.img.naturalHeight;
+  if (S.crop){
+    var r = insetRect(iw, ih, S.rot);
+    return {x: iw / 2 - r.w / 2, y: ih / 2 - r.h / 2, w: r.w, h: r.h};
+  }
   var c = sheetCorners();
   var xs = [c[0][0], c[1][0], c[2][0], c[3][0]], ys = [c[0][1], c[1][1], c[2][1], c[3][1]];
   var x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
@@ -483,11 +539,16 @@ function drawSheet(c){
   c.restore();
 }
 function clipSheet(c){
-  var q = sheetCorners();
   c.beginPath();
-  c.moveTo(q[0][0], q[0][1]);
-  for (var i = 1; i < 4; i++) c.lineTo(q[i][0], q[i][1]);
-  c.closePath();
+  if (S.crop){
+    var b = sheetBox();
+    c.rect(b.x, b.y, b.w, b.h);
+  } else {
+    var q = sheetCorners();
+    c.moveTo(q[0][0], q[0][1]);
+    for (var i = 1; i < 4; i++) c.lineTo(q[i][0], q[i][1]);
+    c.closePath();
+  }
   c.clip();
 }
 
@@ -511,23 +572,66 @@ function rotateBy(delta){
   draw();
 }
 
-function renderRot(){
+function rotDeg(){
   var deg = S.rot * 180 / Math.PI;
   while (deg > 180) deg -= 360;
   while (deg <= -180) deg += 360;
-  var b = document.getElementById("rotVal");
-  b.textContent = (Math.abs(deg) < 0.05 ? "0.0" : deg.toFixed(1)) + "°";
-  b.className = "z" + (Math.abs(deg) < 0.05 ? "" : " off");
+  return deg;
 }
 
-function rotStep(ev){
-  if (ev && ev.shiftKey) return Math.PI / 2;
-  if (ev && ev.altKey) return Math.PI / 1800;
-  return Math.PI / 180;
+function renderRot(){
+  var deg = rotDeg(), square = Math.abs(deg) < 0.005;
+  var b = document.getElementById("rotVal");
+  b.textContent = (square ? "0.00" : deg.toFixed(2)) + "°";
+  b.className = "z" + (square ? "" : " off");
+  var d = document.getElementById("dial");
+  // 10px of ruler to the degree, sliding left as the angle grows
+  var off = 84 - deg * 10;
+  d.style.backgroundPosition = off + "px center, " + off + "px center";
+  d.setAttribute("aria-valuenow", deg.toFixed(2));
+  d.setAttribute("aria-valuetext", deg.toFixed(2) + " degrees");
 }
-document.getElementById("rotL").addEventListener("click", function(ev){ rotateBy(-rotStep(ev)); });
-document.getElementById("rotR").addEventListener("click", function(ev){ rotateBy(rotStep(ev)); });
+
+/* Dragging the dial, rather than stepping it, is what makes a quarter of a
+   degree reachable: a pixel is 0.05°, and Shift drops that to 0.005°. */
+var dialDrag = null;
+var dial = document.getElementById("dial");
+
+dial.addEventListener("pointerdown", function(ev){
+  if (!S.img) return;
+  ev.preventDefault();
+  dial.setPointerCapture(ev.pointerId);
+  dialDrag = {x: ev.clientX, rot: S.rot, acc: S.rot};
+});
+dial.addEventListener("pointermove", function(ev){
+  if (!dialDrag) return;
+  var perPx = (ev.shiftKey ? 0.005 : 0.05) * Math.PI / 180;
+  dialDrag.acc = dialDrag.rot + (ev.clientX - dialDrag.x) * perPx;
+  var want = dialDrag.acc;
+  // a detent at square, so true vertical is easy to come back to
+  if (Math.abs(want) < 0.0022) want = 0;
+  rotateBy(want - S.rot);
+});
+function dialUp(ev){
+  if (!dialDrag) return;
+  dialDrag = null;
+  try { dial.releasePointerCapture(ev.pointerId); } catch (e) {}
+}
+dial.addEventListener("pointerup", dialUp);
+dial.addEventListener("pointercancel", dialUp);
+dial.addEventListener("keydown", function(ev){
+  var fine = Math.PI / 1800;
+  if (ev.key === "ArrowLeft"){ ev.preventDefault(); rotateBy(-fine); }
+  else if (ev.key === "ArrowRight"){ ev.preventDefault(); rotateBy(fine); }
+});
+
 document.getElementById("rotVal").addEventListener("click", function(){ rotateBy(-S.rot); });
+document.getElementById("rot90").addEventListener("click", function(){ rotateBy(Math.PI / 2); });
+document.getElementById("cropBtn").addEventListener("click", function(){
+  S.crop = !S.crop;
+  this.setAttribute("aria-pressed", String(S.crop));
+  draw();
+});
 
 /* ---------------- view ---------------- */
 function toImg(ev){
@@ -724,7 +828,15 @@ function draw(){
   ctx.scale(sc, sc);
 
   ctx.imageSmoothingEnabled = sc < 3;
-  drawSheet(ctx);
+
+  // what the crop is about to throw away, kept faintly visible
+  var cropping = S.crop && S.rot !== 0;
+  if (cropping){
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    drawSheet(ctx);
+    ctx.restore();
+  }
 
   var env = {
     forExport: false,
@@ -735,9 +847,10 @@ function draw(){
     x0: -S.view.tx / sc, y0: -S.view.ty / sc,
     x1: (CW - S.view.tx) / sc, y1: (CH - S.view.ty) / sc
   };
-  // keep the overlay inside the sheet, so the screen matches the export
+  // everything inside the frame, so the screen matches the export
   ctx.save();
   clipSheet(ctx);
+  drawSheet(ctx);
   overlay(ctx, env);
   if (S.pending && S.ghost){
     var g = makeStamp(S.ghost);
@@ -748,6 +861,15 @@ function draw(){
     ctx.restore();
   }
   ctx.restore();
+
+  if (cropping){
+    var cb = sheetBox();
+    ctx.save();
+    ctx.strokeStyle = "rgba(233,229,220,.45)";
+    ctx.lineWidth = 1 / sc;
+    ctx.strokeRect(cb.x, cb.y, cb.w, cb.h);
+    ctx.restore();
+  }
 
   ctx.restore();
 
@@ -1195,8 +1317,8 @@ document.addEventListener("keydown", function(ev){
     draw();
   }
   else if (k === "0") fitView();
-  else if (ev.key === "["){ ev.preventDefault(); rotateBy(-rotStep(ev)); }
-  else if (ev.key === "]"){ ev.preventDefault(); rotateBy(rotStep(ev)); }
+  else if (ev.key === "["){ ev.preventDefault(); rotateBy(-Math.PI / 1800); }
+  else if (ev.key === "]"){ ev.preventDefault(); rotateBy(Math.PI / 1800); }
   else if (ev.key === "Escape"){ cancelStamp(); S.sel = null; draw(); renderPanel(); }
 });
 document.addEventListener("keyup", function(ev){
@@ -1253,13 +1375,18 @@ window.addEventListener("paste", function(e){
 });
 
 /* ---------------- export ---------------- */
-document.getElementById("btnExport").addEventListener("click", function(){
-  if (!S.img) return;
+/* The sheet is rendered at whatever multiple of its own pixels you ask for.
+   Upscaling adds no detail to the photograph, but it does keep the rules and
+   labels crisp — and a 1500px specimen makes for a very small PNG otherwise. */
+function renderExport(k){
   var b = sheetBox();
   var c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round(b.w));
-  c.height = Math.max(1, Math.round(b.h));
+  c.width = Math.max(1, Math.round(b.w * k));
+  c.height = Math.max(1, Math.round(b.h * k));
   var x = c.getContext("2d");
+  x.imageSmoothingEnabled = true;
+  x.imageSmoothingQuality = "high";
+  x.scale(k, k);
   x.translate(-b.x, -b.y);          // a turned sheet needs a wider frame
   drawSheet(x);
   clipSheet(x);
@@ -1272,11 +1399,18 @@ document.getElementById("btnExport").addEventListener("click", function(){
     label: Math.max(13, diag / 95),
     x0: b.x, y0: b.y, x1: b.x + b.w, y1: b.y + b.h
   });
-  c.toBlob(function(blob){
-    var url = URL.createObjectURL(blob);
-    var base = (S.name || "image").replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "-").slice(0, 40);
-    showExport(blob, url, "mizan-" + base + ".png");
-  }, "image/png");
+  return c;
+}
+
+function defaultExportScale(){
+  var b = sheetBox();
+  var longest = Math.max(b.w, b.h);
+  return Math.max(1, Math.min(4, Math.ceil(2600 / longest)));
+}
+
+document.getElementById("btnExport").addEventListener("click", function(){
+  if (!S.img) return;
+  showExport(defaultExportScale());
 });
 
 /* Saving a file: a plain <a download> when the page is opened from disk,
@@ -1291,20 +1425,62 @@ function getDownloads(){
   return dlPromise;
 }
 
-function showExport(blob, url, filename){
+function showExport(startScale){
+  var filename = "mizan-" +
+    (S.name || "image").replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "-").slice(0, 40) + ".png";
+  var blob = null, url = null, scale = startScale;
+
   var m = document.createElement("div");
   m.className = "modal";
   var sheet = document.createElement("div");
   sheet.className = "sheet";
+
   var im = document.createElement("img");
-  im.src = url; im.alt = "Exported measurement sheet";
-  var foot = document.createElement("div");
-  foot.className = "foot";
+  im.alt = "The measured sheet, ready to export";
+
+  var sizes = document.createElement("div");
+  sizes.className = "sizes";
+  var label = document.createElement("span");
+  label.className = "dims";
+
   var save = document.createElement("button");
   save.className = "btn primary"; save.textContent = "Save PNG";
-  var p = document.createElement("p");
-  p.textContent = filename;
+  var close = document.createElement("button");
+  close.className = "btn"; close.textContent = "Close";
+  var note = document.createElement("p");
+  note.textContent = filename;
+
+  function release(){ if (url){ URL.revokeObjectURL(url); url = null; } }
+
+  function build(k){
+    scale = k;
+    var btns = sizes.querySelectorAll("button");
+    for (var i = 0; i < btns.length; i++)
+      btns[i].setAttribute("aria-pressed", String(+btns[i].dataset.k === k));
+    save.disabled = true;
+    label.textContent = "rendering…";
+    var c = renderExport(k);
+    c.toBlob(function(b){
+      release();
+      blob = b; url = URL.createObjectURL(b);
+      im.src = url;
+      label.textContent = c.width + " × " + c.height + " px · " +
+        (b.size / 1048576).toFixed(1) + " MB";
+      save.disabled = false;
+    }, "image/png");
+  }
+
+  [1, 2, 3, 4].forEach(function(k){
+    var b = document.createElement("button");
+    b.dataset.k = k; b.textContent = k + "×";
+    b.title = "Export at " + k + " times the size of the sheet";
+    b.addEventListener("click", function(){ build(k); });
+    sizes.appendChild(b);
+  });
+  sizes.appendChild(label);
+
   save.addEventListener("click", function(){
+    if (!blob) return;
     save.disabled = true;
     getDownloads().then(function(d){
       if (d && d.save) return d.save({filename: filename, data: blob});
@@ -1313,21 +1489,24 @@ function showExport(blob, url, filename){
       document.body.appendChild(a); a.click(); a.remove();
       return null;
     }).then(function(){
-      p.textContent = "Saved as " + filename;
+      note.textContent = "Saved as " + filename;
     })["catch"](function(err){
-      p.textContent = (err && err.code === "declined")
+      note.textContent = (err && err.code === "declined")
         ? "Save cancelled."
         : "Could not save — right-click the image above and choose “Save image as…” instead.";
     }).then(function(){ save.disabled = false; });
   });
-  var close = document.createElement("button");
-  close.className = "btn"; close.textContent = "Close";
-  close.addEventListener("click", function(){ document.body.removeChild(m); URL.revokeObjectURL(url); });
-  foot.appendChild(save); foot.appendChild(close); foot.appendChild(p);
-  sheet.appendChild(im); sheet.appendChild(foot);
+
+  close.addEventListener("click", function(){ document.body.removeChild(m); release(); });
+
+  var foot = document.createElement("div");
+  foot.className = "foot";
+  foot.appendChild(save); foot.appendChild(close); foot.appendChild(note);
+  sheet.appendChild(im); sheet.appendChild(sizes); sheet.appendChild(foot);
   m.appendChild(sheet);
   m.addEventListener("click", function(e){ if (e.target === m) close.click(); });
   document.body.appendChild(m);
+  build(startScale);
 }
 
 /* ---------------- sample specimen ----------------

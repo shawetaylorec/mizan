@@ -25,12 +25,21 @@ uploaded anywhere; the image stays on your machine.
 ## Using it
 
 1. **Open image** (or drag one onto the canvas, or paste with `Ctrl+V`).
-2. If the page was shot slightly askew, straighten it with the two arrows beneath the
-   image — a degree a click, `Shift` for 90°, `Alt` for a tenth of a degree. The grid
-   stays square while the photograph turns under it, so you straighten until the script
-   lines up rather than tilting the grid to chase it. Any marks already placed turn with
-   the sheet and stay where you put them; the readout turns gold once you are off zero,
-   and clicking it straightens back.
+2. If the page was shot askew, **drag the dial** beneath the image to straighten it.
+   A pixel of drag is 0.05°, and holding `Shift` makes it 0.005°, so a quarter of a
+   degree is reachable; `[` and `]` nudge by a tenth. There is a detent at square, the
+   readout turns gold once you are off it, and clicking the readout straightens back.
+   `90°` handles a photograph that came in sideways.
+
+   The grid stays square while the photograph turns under it, so you straighten until
+   the script lines up rather than tilting the grid to chase it. Marks already placed
+   turn with the sheet and stay on the letters they measure.
+
+   **Crop** (on by default) trims the turned sheet back to the largest upright
+   rectangle that still fits inside it, the way straightening works in Google Photos —
+   so you get a square-edged image rather than a picture at a jaunty angle. What falls
+   outside is dimmed rather than hidden, so you can see what you are giving up. Turn it
+   off to keep the whole tilted sheet, blank corners and all.
 3. Pick the **Alif** tool and drag from the top of an alif to its foot. Hold `Shift`
    to lock the measurement to true vertical.
 4. A grid appears, subdivided into equal parts of that alif — 8 by default, with
@@ -40,8 +49,12 @@ uploaded anywhere; the image stays on your machine.
    outwards and are always true circles.
 6. Each shape is labelled with its ratio to the alif — `1/4 (98%)` means the shape
    is nearest to a quarter of an alif and sits within 98% of exactly that.
-7. **Export PNG** writes the image, the grid and your marks out at the original
-   resolution of the picture.
+7. **Export PNG** writes the image, the grid and your marks out as one picture. The
+   dialog offers 1× to 4× the sheet's own pixels and shows you the resulting dimensions
+   and file size before you save. It opens on whatever multiple gets the long edge past
+   about 2600px, because a sheet exported at 1× is often smaller than you want — the
+   upscale adds no detail to the photograph, but it does keep the rules and labels
+   crisp at print size.
 
 ## Working the other way round
 
@@ -81,7 +94,7 @@ ratio, which is often the more honest number of the two.
 | Scroll | zoom · `0` fits the image to the view |
 | `Backspace` | delete the selection |
 | `Ctrl+Z` | undo |
-| `[` `]` | straighten the sheet by a degree |
+| Drag the dial | straighten · `Shift` for hair-fine · `[` `]` nudge a tenth of a degree |
 | `G` | show/hide the grid |
 
 Clicking a colour recolours the selected shape as well as setting the colour for
